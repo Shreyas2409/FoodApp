@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Food Ordering App</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* A little extra style for better feel */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .form-container {
+            transition: all 0.3s ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+<div class="container mx-auto p-4 md:p-8 max-w-lg">
+    <h1 class="text-3xl md:text-4xl font-bold text-center text-gray-700 mb-6">Food Ordering Service</h1>
+
+    <!-- Response Message Area -->
+    <div id="responseMessage" class="mb-4 p-4 text-center rounded-lg text-white font-semibold hidden"></div>
+
+    <!-- Auth Forms: Register and Login -->
+    <div id="authSection" class="form-container bg-white p-8 rounded-xl shadow-lg">
+        <div class="flex border-b mb-6">
+            <button id="showLoginBtn" class="flex-1 py-2 text-lg font-semibold text-center border-b-4 border-blue-500 text-blue-500">Login</button>
+            <button id="showRegisterBtn" class="flex-1 py-2 text-lg font-semibold text-center border-b-4 border-transparent text-gray-500">Register</button>
+        </div>
+
+        <!-- Login Form -->
+        <form id="loginForm">
+            <h2 class="text-2xl font-semibold mb-4 text-gray-600">Login to Your Account</h2>
+            <div class="mb-4">
+                <label for="loginUsername" class="block text-sm font-medium text-gray-700 mb-1">Username</label>
+                <input type="text" id="loginUsername" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+            </div>
+            <div class="mb-6">
+                <label for="loginPassword" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                <input type="password" id="loginPassword" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+            </div>
+            <button type="submit" class="w-full bg-blue-500 text-white py-2 rounded-lg font-semibold hover:bg-blue-600 transition-colors">Login</button>
+        </form>
+
+        <!-- Registration Form -->
+        <form id="registerForm" class="hidden">
+            <h2 class="text-2xl font-semibold mb-4 text-gray-600">Create a New Account</h2>
+            <div class="mb-4">
+                <label for="registerUsername" class="block text-sm font-medium text-gray-700 mb-1">Username</label>
+                <input type="text" id="registerUsername" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+            </div>
+            <div class="mb-6">
+                <label for="registerPassword" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                <input type="password" id="registerPassword" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+            </div>
+            <button type="submit" class="w-full bg-green-500 text-white py-2 rounded-lg font-semibold hover:bg-green-600 transition-colors">Register</button>
+        </form>
+    </div>
+
+    <!-- Order Section (hidden by default) -->
+    <div id="orderSection" class="form-container bg-white p-8 rounded-xl shadow-lg mt-8 hidden">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-semibold text-gray-600">Place an Order</h2>
+            <button id="logoutBtn" class="bg-red-500 text-white px-4 py-2 rounded-lg font-semibold hover:bg-red-600 transition-colors text-sm">Logout</button>
+        </div>
+        <form id="orderForm">
+            <div class="mb-4">
+                <label for="customerName" class="block text-sm font-medium text-gray-700 mb-1">Your Name</label>
+                <input type="text" id="customerName" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+            </div>
+            <div class="mb-4">
+                <label for="foodType" class="block text-sm font-medium text-gray-700 mb-1">Select Food</label>
+                <select id="foodType" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                    <option value="pizza">Pizza - $12.99</option>
+                    <option value="burger">Burger - $8.99</option>
+                    <option value="salad">Salad - $6.99</option>
+                </select>
+            </div>
+            <button type="submit" class="w-full bg-purple-500 text-white py-2 rounded-lg font-semibold hover:bg-purple-600 transition-colors">Submit Order</button>
+        </form>
+    </div>
+
+</div>
+
+<script>
+    // --- Global State ---
+    let jwtToken = null;
+    const API_BASE_URL = 'http://localhost:8080'; // Your Spring Boot app URL
+
+    // --- DOM Elements ---
+    const loginForm = document.getElementById('loginForm');
+    const registerForm = document.getElementById('registerForm');
+    const orderForm = document.getElementById('orderForm');
+    const authSection = document.getElementById('authSection');
+    const orderSection = document.getElementById('orderSection');
+    const responseMessage = document.getElementById('responseMessage');
+    const showLoginBtn = document.getElementById('showLoginBtn');
+    const showRegisterBtn = document.getElementById('showRegisterBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
+
+    // --- UI Logic ---
+    function showMessage(message, isError = false) {
+        responseMessage.textContent = message;
+        responseMessage.classList.remove('hidden', 'bg-green-500', 'bg-red-500');
+        responseMessage.classList.add(isError ? 'bg-red-500' : 'bg-green-500');
+        // Hide the message after 5 seconds
+        setTimeout(() => responseMessage.classList.add('hidden'), 5000);
+    }
+
+    function toggleForms(showLogin) {
+        if (showLogin) {
+            loginForm.classList.remove('hidden');
+            registerForm.classList.add('hidden');
+            showLoginBtn.classList.add('border-blue-500', 'text-blue-500');
+            showRegisterBtn.classList.remove('border-blue-500', 'text-blue-500');
+        } else {
+            loginForm.classList.add('hidden');
+            registerForm.classList.remove('hidden');
+            showRegisterBtn.classList.add('border-blue-500', 'text-blue-500');
+            showLoginBtn.classList.remove('border-blue-500', 'text-blue-500');
+        }
+    }
+
+    function showOrderScreen() {
+        authSection.classList.add('hidden');
+        orderSection.classList.remove('hidden');
+    }
+
+    function showAuthScreen() {
+        jwtToken = null;
+        authSection.classList.remove('hidden');
+        orderSection.classList.add('hidden');
+        toggleForms(true); // Default to login form
+    }
+
+    // --- Event Listeners ---
+    showLoginBtn.addEventListener('click', () => toggleForms(true));
+    showRegisterBtn.addEventListener('click', () => toggleForms(false));
+    logoutBtn.addEventListener('click', showAuthScreen);
+
+    registerForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const username = document.getElementById('registerUsername').value;
+        const password = document.getElementById('registerPassword').value;
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+
+            const resultText = await response.text();
+            if (!response.ok) {
+                throw new Error(resultText || 'Registration failed');
+            }
+
+            showMessage('Registration successful! Please log in.', false);
+            toggleForms(true); // Switch to login form
+            registerForm.reset();
+
+        } catch (error) {
+            showMessage(error.message, true);
+        }
+    });
+
+    loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const username = document.getElementById('loginUsername').value;
+        const password = document.getElementById('loginPassword').value;
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+
+            if (!response.ok) {
+                throw new Error('Invalid username or password');
+            }
+
+            const result = await response.json();
+            jwtToken = result.token;
+            showMessage('Login successful!', false);
+            showOrderScreen();
+            loginForm.reset();
+
+        } catch (error) {
+            showMessage(error.message, true);
+        }
+    });
+
+    orderForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (!jwtToken) {
+            showMessage('You are not logged in.', true);
+            return;
+        }
+
+        const customerName = document.getElementById('customerName').value;
+        const foodType = document.getElementById('foodType').value;
+
+        const orderData = {
+            customerName,
+            foodType,
+            toppings: [], // For simplicity, we are not adding toppings in this basic form
+            paymentMethod: 'creditCard' // Default payment method
+        };
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/orders`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${jwtToken}` // Include the JWT token
+                },
+                body: JSON.stringify(orderData)
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to place order.');
+            }
+
+            const newOrder = await response.json();
+            showMessage(`Order #${newOrder.id} placed successfully! Details: ${newOrder.orderDetails}`, false);
+            orderForm.reset();
+
+        } catch (error) {
+            showMessage(error.message, true);
+        }
+    });
+</script>
+
+</body>
+</html>
