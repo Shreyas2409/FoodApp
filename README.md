@@ -18,11 +18,11 @@ This project was built to demonstrate how design patterns can be applied to crea
 
 ### 1. Facade Pattern
 * **Purpose:** Provides a simplified, high-level interface to a complex subsystem.
-* **Implementation:** The `OrderFacade` class (`com.example.designpatterns.service.OrderFacade`) acts as a single entry point for placing an order. It hides the underlying complexity of creating food items, applying decorators, processing payments, saving the order, and notifying observers. The `OrderController` only needs to interact with this facade, not the individual components.
+* **Implementation:** The `OrderFacade` class (`com.example.foodapp.service.OrderFacade`) acts as a single entry point for placing an order. It hides the underlying complexity of creating food items, applying decorators, processing payments, saving the order, and notifying observers. The `OrderController` only needs to interact with this facade, not the individual components.
 
 ### 2. Strategy Pattern
 * **Purpose:** Defines a family of algorithms, encapsulates each one, and makes them interchangeable.
-* **Implementation:** The `PaymentStrategy` interface (`com.example.designpatterns.patterns.strategy.PaymentStrategy`) defines the contract for a payment method. Concrete implementations like `CreditCardPayment` and `PayPalPayment` provide different ways to pay. The `OrderFacade` selects the appropriate strategy at runtime based on the user's request, without being coupled to the specific payment logic.
+* **Implementation:** The `PaymentStrategy` interface (`com.example.foodapp.patterns.strategy.PaymentStrategy`) defines the contract for a payment method. Concrete implementations like `CreditCardPayment` and `PayPalPayment` provide different ways to pay. The `OrderFacade` selects the appropriate strategy at runtime based on the user's request, without being coupled to the specific payment logic.
 
 ### 3. Observer Pattern
 * **Purpose:** Defines a one-to-many dependency between objects so that when one object changes state, all its dependents are notified and updated automatically.
@@ -30,7 +30,7 @@ This project was built to demonstrate how design patterns can be applied to crea
 
 ### 4. Factory Pattern
 * **Purpose:** Provides an interface for creating objects in a superclass but allows subclasses to alter the type of objects that will be created.
-* **Implementation:** The `FoodItemFactory` (`com.example.designpatterns.patterns.factory.FoodItemFactory`) is responsible for creating different types of `FoodItem` objects (like Pizza, Burger, etc.) based on a string input. This removes the instantiation logic from the client (the `OrderFacade`), making it easy to add new food types without changing the facade's code.
+* **Implementation:** The `FoodItemFactory` (`com.example.foodapp.patterns.factory.FoodItemFactory`) is responsible for creating different types of `FoodItem` objects (like Pizza, Burger, etc.) based on a string input. This removes the instantiation logic from the client (the `OrderFacade`), making it easy to add new food types without changing the facade's code.
 
 ### 5. Decorator Pattern
 * **Purpose:** Attaches additional responsibilities to an object dynamically.
